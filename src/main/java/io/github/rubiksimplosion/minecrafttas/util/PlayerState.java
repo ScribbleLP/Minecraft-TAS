@@ -1,14 +1,10 @@
 package io.github.rubiksimplosion.minecrafttas.util;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
 
 //TODO: Health, Hunger, XP
 public class PlayerState {
@@ -24,9 +20,9 @@ public class PlayerState {
     public PlayerState(ServerPlayerEntity player) {
         this(player.getPos(),
                 player.getVelocity(),
-                player.getYaw(),
-                player.getPitch(),
-                player.getInventory(),
+                player.yaw,
+                player.pitch,
+                player.inventory,
                 player.getServerWorld());
     }
 

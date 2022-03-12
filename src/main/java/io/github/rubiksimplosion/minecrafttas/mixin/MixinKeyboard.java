@@ -19,13 +19,13 @@ public class MixinKeyboard {
             int keyTest = ((KeyBindingAccessor)KeyBindingAccessor
                     .getKeysById()
                     .get("key.minecrafttas.test"))
-                    .getBoundKey()
-                    .getCode();
+                    .getKeyCode()
+                    .getKeyCode();
             int keyStop = ((KeyBindingAccessor)KeyBindingAccessor
                     .getKeysById()
                     .get("key.minecrafttas.script.stop"))
-                    .getBoundKey()
-                    .getCode();
+                    .getKeyCode()
+                    .getKeyCode();
             if (!MinecraftTas.scriptManager.fakeInput && key != keyStop && key != keyTest) {
                 ci.cancel();
             }

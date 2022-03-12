@@ -16,7 +16,7 @@ public class FakeMouse {
     public static void fakeMouseButton(int button, int action) {
         MinecraftTas.scriptManager.fakeInput = true;
         ((MouseAccessor)MinecraftClient.getInstance().mouse).callOnMouseButton(
-                MinecraftClient.getInstance().getWindow().getHandle(),
+                MinecraftClient.getInstance().window.getHandle(),
                 button,
                 action,
                 MinecraftTas.scriptManager.modifiers);
@@ -27,7 +27,7 @@ public class FakeMouse {
     public static void fakeMouseScroll(double direction) {
         MinecraftTas.scriptManager.fakeInput = true;
         ((MouseAccessor)MinecraftClient.getInstance().mouse).callOnMouseScroll(
-                MinecraftClient.getInstance().getWindow().getHandle(),
+                MinecraftClient.getInstance().window.getHandle(),
                 0,
                 direction);
         MinecraftTas.scriptManager.fakeInput = false;
@@ -37,7 +37,7 @@ public class FakeMouse {
     public static void fakeCursorMove(double x, double y) {
         MinecraftTas.scriptManager.fakeInput = true;
         ((MouseAccessor)MinecraftClient.getInstance().mouse).callOnCursorPos(
-                MinecraftClient.getInstance().getWindow().getHandle(),
+                MinecraftClient.getInstance().window.getHandle(),
                 x,
                 y);
         MinecraftTas.scriptManager.fakeInput = false;

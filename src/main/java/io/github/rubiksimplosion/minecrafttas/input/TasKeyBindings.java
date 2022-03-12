@@ -10,7 +10,7 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.options.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.LiteralText;
@@ -105,7 +105,7 @@ public class TasKeyBindings {
     public static void onKeyScriptStopPressed() {
         if (MinecraftTas.scriptManager.executing) {
 //            MinecraftClient.getInstance().player.sendMessage(new LiteralText("Stopped executing script"), false);
-            io.github.rubiksimplosion.minecrafttas.util.InputUtil.getClientSidePlayerEntity().sendMessage(
+            io.github.rubiksimplosion.minecrafttas.util.InputUtil.getClientSidePlayerEntity().addChatMessage(
                     new TranslatableText("script.execution.stop"), false);
             MinecraftTas.scriptManager.stop();
         }
@@ -114,11 +114,11 @@ public class TasKeyBindings {
     public static void onKeyScriptStartPressed() {
         if (!MinecraftTas.scriptManager.executing) {
             if (MinecraftTas.scriptManager.isScriptLoaded()) {
-                io.github.rubiksimplosion.minecrafttas.util.InputUtil.getClientSidePlayerEntity().sendMessage(
+                io.github.rubiksimplosion.minecrafttas.util.InputUtil.getClientSidePlayerEntity().addChatMessage(
                         new TranslatableText("script.execution.start"), false);
                 MinecraftTas.scriptManager.start();
             } else {
-                io.github.rubiksimplosion.minecrafttas.util.InputUtil.getClientSidePlayerEntity().sendMessage(
+                io.github.rubiksimplosion.minecrafttas.util.InputUtil.getClientSidePlayerEntity().addChatMessage(
                         new TranslatableText("error.scriptNotLoaded"), false);
             }
         }

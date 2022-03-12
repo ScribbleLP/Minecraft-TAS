@@ -21,10 +21,10 @@ public class SavestateManager {
     public void addSoftSavestate(PlayerState state) {
         if (MinecraftClient.getInstance().isInSingleplayer()) {
             softSavestates.add(state);
-            InputUtil.getClientSidePlayerEntity().sendMessage(
+            InputUtil.getClientSidePlayerEntity().addChatMessage(
                     new TranslatableText("savestate.create", softSavestates.size()), false);
         } else {
-            InputUtil.getClientSidePlayerEntity().sendMessage(
+            InputUtil.getClientSidePlayerEntity().addChatMessage(
                     new TranslatableText("error.savestate.multiplayer"), false);
         }
     }
@@ -41,21 +41,21 @@ public class SavestateManager {
             player.velocityDirty = true;
 
             // inventory = 0..35
-            for (int i = 0; i < state.inventory_main.length; i++) {
-                player.getStackReference(i).set(state.inventory_main[i].copy());
-            }
-            // head,chest,leg,feet = 103,102,101,100
-            for (int i = 0; i < state.inventory_armor.length; i++) {
-                player.getStackReference(100+i).set(state.inventory_armor[i].copy());
-            }
+			for (int i = 0; i < state.inventory_main.length; i++) {
+				player.playerContainer.getSlot(i).setStack(state.inventory_main[i].copy());
+			}
+			// head,chest,leg,feet = 103,102,101,100
+			for (int i = 0; i < state.inventory_armor.length; i++) {
+				player.playerContainer.getSlot(100 + i).setStack(state.inventory_armor[i].copy());
+			}
             //offhand = 99
-            player.getStackReference(99).set(state.inventory_offhand.copy());
-            player.currentScreenHandler.sendContentUpdates();
+			player.playerContainer.getSlot(99).setStack(state.inventory_offhand.copy());
+            player.container.sendContentUpdates();
 
-            InputUtil.getClientSidePlayerEntity().sendMessage(
+            InputUtil.getClientSidePlayerEntity().addChatMessage(
                     new TranslatableText("savestate.load", softSavestates.size()), false);
         } else {
-            InputUtil.getClientSidePlayerEntity().sendMessage(
+            InputUtil.getClientSidePlayerEntity().addChatMessage(
                     new TranslatableText("error.savestate.load.empty"), false);
         }
     }
@@ -63,10 +63,10 @@ public class SavestateManager {
     public void removeSoftSavestate() {
         if (softSavestates.size() > 0) {
             softSavestates.remove(softSavestates.size() - 1);
-            InputUtil.getClientSidePlayerEntity().sendMessage(
+            InputUtil.getClientSidePlayerEntity().addChatMessage(
                     new TranslatableText("Save-state #%s deleted.", softSavestates.size() + 1), false);
         } else {
-            InputUtil.getClientSidePlayerEntity().sendMessage(
+            InputUtil.getClientSidePlayerEntity().addChatMessage(
                     new TranslatableText("error.savestate.remove.empty"), false);
         }
     }

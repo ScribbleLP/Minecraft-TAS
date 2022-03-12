@@ -34,7 +34,7 @@ public class ScriptCommand {
     }
 
     public static int test(ServerCommandSource source) {
-        InputUtil.getClientSidePlayerEntity().sendMessage(
+        InputUtil.getClientSidePlayerEntity().addChatMessage(
                 new LiteralText(ScriptManager.scriptDirectory.toString()), false);
         return 0;
     }

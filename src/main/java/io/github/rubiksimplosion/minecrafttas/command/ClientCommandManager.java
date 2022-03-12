@@ -54,8 +54,8 @@ public class ClientCommandManager {
             ClientCommandManager.sendError(Texts.toText(e.getRawMessage()));
             if (e.getInput() != null && e.getCursor() >= 0) {
                 int cursor = Math.min(e.getCursor(), e.getInput().length());
-                MutableText text = new LiteralText("").formatted(Formatting.GRAY)
-                        .styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command)));
+                Text text = new LiteralText("").formatted(Formatting.GRAY)
+                        .styled(style -> style.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command)));
                 if (cursor > 10)
                     text.append("...");
 
@@ -70,7 +70,7 @@ public class ClientCommandManager {
         } catch (Exception e) {
             LiteralText error = new LiteralText(e.getMessage() == null ? e.getClass().getName() : e.getMessage());
             ClientCommandManager.sendError(new TranslatableText("command.failed")
-                    .styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, error))));
+                    .styled(style -> style.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, error))));
             e.printStackTrace();
         }
         return 1;
@@ -78,17 +78,17 @@ public class ClientCommandManager {
 
     public static Text getCoordsTextComponent(BlockPos pos) {
         return new TranslatableText("commands.client.blockpos", pos.getX(), pos.getY(), pos.getZ()).styled(style -> style
-                .withFormatting(Formatting.UNDERLINE)
-                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
+                .setColor(Formatting.UNDERLINE)
+                .setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
                         String.format("/clook block %d %d %d", pos.getX(), pos.getY(), pos.getZ())))
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                .setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
                         new LiteralText(String.format("/clook block %d %d %d", pos.getX(), pos.getY(), pos.getZ())))));
     }
 
     public static Text getCommandTextComponent(String translationKey, String command) {
-        return new TranslatableText(translationKey).styled(style -> style.withFormatting(Formatting.UNDERLINE)
-                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command))
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new LiteralText(command))));
+        return new TranslatableText(translationKey).styled(style -> style.setColor(Formatting.UNDERLINE)
+                .setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command))
+                .setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new LiteralText(command))));
     }
 
 }

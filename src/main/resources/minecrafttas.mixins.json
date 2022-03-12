@@ -1,14 +1,13 @@
 {
   "required": true,
   "package": "io.github.rubiksimplosion.minecrafttas.mixin",
-  "compatibilityLevel": "JAVA_8",
+  "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "HandledScreenAccessor",
+    "ContainerScreenAccessor",
     "KeyBindingAccessor",
     "KeyboardAccessor",
     "MixinClientPlayerEntity",
     "MixinClientPlayNetworkHandler",
-    "MixinCommandSuggestor",
     "MixinInputUtil",
     "MixinKeyboard",
     "MixinMinecraftClient",

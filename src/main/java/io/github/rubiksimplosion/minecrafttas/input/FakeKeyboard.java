@@ -19,7 +19,7 @@ public class FakeKeyboard {
         MinecraftTas.scriptManager.fakeInput = true;
         if (MinecraftClient.getInstance().currentScreen == null) {
             MinecraftClient.getInstance().keyboard.onKey(
-                    MinecraftClient.getInstance().getWindow().getHandle(),
+                    MinecraftClient.getInstance().window.getHandle(),
                     key,
                     GLFW.glfwGetKeyScancode(key),
                     action,
@@ -35,7 +35,7 @@ public class FakeKeyboard {
     }
     public static void fakeOnChar(int i, int j) {
         ((KeyboardAccessor) MinecraftClient.getInstance().keyboard).callOnChar(
-                MinecraftClient.getInstance().getWindow().getHandle(),
+                MinecraftClient.getInstance().window.getHandle(),
                 i,
                 j);
     }

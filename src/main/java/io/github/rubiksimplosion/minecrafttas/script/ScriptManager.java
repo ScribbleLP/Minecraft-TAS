@@ -150,7 +150,7 @@ public class ScriptManager {
         commandIndex = 0;
         waitTimer = 0;
         modifiers = 0;
-        InputUtil.getClientSidePlayerEntity().sendMessage(new TranslatableText("script.execution.finish"), false);
+        InputUtil.getClientSidePlayerEntity().addChatMessage(new TranslatableText("script.execution.finish"), false);
     }
 
     public void setupTick() {

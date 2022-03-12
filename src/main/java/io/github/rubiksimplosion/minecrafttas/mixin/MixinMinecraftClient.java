@@ -20,7 +20,7 @@ public class MixinMinecraftClient {
             InputUtil.updateCursorPos();
             MinecraftTas.scriptManager.setupTick();
             if (InputUtil.autoJumpEnabled) {
-                if (InputUtil.getClientSidePlayerEntity().isOnGround() && !MinecraftClient.getInstance().options.keyJump.isPressed()) {
+                if (InputUtil.getClientSidePlayerEntity().onGround && !MinecraftClient.getInstance().options.keyJump.isPressed()) {
                     InputUtil.pressJump();
                 } else if (MinecraftClient.getInstance().options.keyJump.isPressed()) {
                     InputUtil.releaseJump();
