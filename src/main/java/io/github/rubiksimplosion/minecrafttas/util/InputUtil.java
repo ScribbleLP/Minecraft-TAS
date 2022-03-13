@@ -12,6 +12,7 @@ import net.minecraft.client.search.SearchManager.Key;
 import net.minecraft.client.util.InputUtil.KeyCode;
 import net.minecraft.container.Slot;
 import net.minecraft.server.network.ServerPlayerEntity;
+import org.lwjgl.glfw.GLFW;
 
 import static net.minecraft.client.util.InputUtil.*;
 
@@ -53,6 +54,7 @@ public class InputUtil {
     }
 
     public static void moveMouseToSlot(int slotId) {
+        try {
         Slot slot = ((ContainerScreen)MinecraftClient.getInstance().currentScreen).getContainer().getSlot(slotId);
 
         int x = ((ContainerScreenAccessor)MinecraftClient.getInstance().currentScreen).getX() + slot.xPosition;
@@ -61,7 +63,11 @@ public class InputUtil {
         int y = ((ContainerScreenAccessor)MinecraftClient.getInstance().currentScreen).getY() + slot.yPosition;
         y = y * MinecraftClient.getInstance().window.getHeight() / MinecraftClient.getInstance().window.getScaledHeight();
 
-        FakeMouse.fakeCursorMove(x, y);
+            FakeMouse.fakeCursorMove(x, y);
+        } catch (NullPointerException e) {
+            //TODO: Add error check on script compilation
+            e.printStackTrace();
+        }
     }
 
     public static void pressMouseButton(int button) {
@@ -75,21 +81,21 @@ public class InputUtil {
     public static void pressLeftShift() {
         if (MinecraftTas.scriptManager.modifiers % 2 == 0) {
             MinecraftTas.scriptManager.modifiers += 1;
-            FakeKeyboard.fakeOnKey(340, 1);
+            FakeKeyboard.fakeOnKey(GLFW.GLFW_KEY_LEFT_SHIFT, 1);
         }
     }
     public static void releaseLeftShift() {
         if (MinecraftTas.scriptManager.modifiers % 2 == 1) {
             MinecraftTas.scriptManager.modifiers -= 1;
-            FakeKeyboard.fakeOnKey(340, 0);
+            FakeKeyboard.fakeOnKey(GLFW.GLFW_KEY_LEFT_SHIFT, 0);
         }
     }
 
     public static void pressLeftControl() {
-        FakeKeyboard.fakeOnKey(341, 1);
+        FakeKeyboard.fakeOnKey(GLFW.GLFW_KEY_LEFT_CONTROL, 1);
     }
     public static void releaseLeftControl() {
-        FakeKeyboard.fakeOnKey(341, 0);
+        FakeKeyboard.fakeOnKey(GLFW.GLFW_KEY_LEFT_CONTROL, 0);
     }
 
     public static void enableAutoJump() {
@@ -262,6 +268,13 @@ public class InputUtil {
         pressKey(key, false);
     }
 
+    public static void pressEnter() {
+        FakeKeyboard.fakeOnKey(GLFW.GLFW_KEY_ENTER, 1);
+    }
+
+    public static void releaseEnter() {
+        FakeKeyboard.fakeOnKey(GLFW.GLFW_KEY_ENTER, 0);
+    }
     public static void pressEscape() {
         pressKey(fromName("key.keyboard.escape"), true);
     }
@@ -270,31 +283,26 @@ public class InputUtil {
         pressKey(fromName("key.keyboard.escape"), false);
     }
 
+    public static void typeLiteralChar(char key) {
+        FakeKeyboard.fakeOnChar(key);
+    }
+
     private static void pressKey(KeyCode key, boolean pressed) {
         updateModifiers(key, pressed);
-        switch(key.getCategory()) {
-            case KEYSYM:
-                FakeKeyboard.fakeOnKey(key.getKeyCode(), pressed ? 1 : 0);
-                break;
-            case MOUSE:
-                FakeMouse.fakeMouseButton(key.getKeyCode(), pressed ? 1 : 0);
-                break;
+        switch (key.getCategory()) {
+            case KEYSYM: FakeKeyboard.fakeOnKey(key.getKeyCode(), pressed ? 1 : 0);break;
+            case MOUSE: FakeMouse.fakeMouseButton(key.getKeyCode(), pressed ? 1 : 0);break;
         }
     }
 
     public static void updateModifiers(KeyCode key, boolean pressed) {
-        //shift
-        if (key.getKeyCode() == 340) {
+        if (key.getKeyCode() == GLFW.GLFW_KEY_LEFT_SHIFT) {
             MinecraftTas.scriptManager.modifiers += pressed ? 1 : -1;
         }
-
-        //control
-        else if (key.getKeyCode() == 341) {
+        else if (key.getKeyCode() == GLFW.GLFW_KEY_LEFT_CONTROL) {
             MinecraftTas.scriptManager.modifiers += pressed ? 2 : -2;
         }
-
-        //alt
-        else if (key.getKeyCode() == 342) {
+        else if (key.getKeyCode() == GLFW.GLFW_KEY_LEFT_ALT) {
             MinecraftTas.scriptManager.modifiers += pressed ? 4 : -4;
         }
     }

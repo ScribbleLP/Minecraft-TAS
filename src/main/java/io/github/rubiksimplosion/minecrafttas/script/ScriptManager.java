@@ -2,16 +2,13 @@ package io.github.rubiksimplosion.minecrafttas.script;
 
 import io.github.rubiksimplosion.minecrafttas.MinecraftTas;
 import io.github.rubiksimplosion.minecrafttas.input.FakeMouse;
-import io.github.rubiksimplosion.minecrafttas.mixin.ServerPlayerEntityAccessor;
-import io.github.rubiksimplosion.minecrafttas.savestate.SavestateManager;
+//import io.github.rubiksimplosion.minecrafttas.mixin.MinecraftClientAccessor;
 import io.github.rubiksimplosion.minecrafttas.util.COMMAND_TYPES;
 import io.github.rubiksimplosion.minecrafttas.util.InputUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.TranslatableText;
 
 import java.io.BufferedReader;
@@ -34,10 +31,10 @@ public class ScriptManager {
     private String[] script;
     private int commandIndex = 0;
     private int waitTimer = 0;
-    private boolean compiling = false;
-
-    private final Queue<COMMAND_TYPES> keyInputQueue = new LinkedList<COMMAND_TYPES>();
-    private final Queue<COMMAND_TYPES> specialInputQueue = new LinkedList<COMMAND_TYPES>();
+    private int length = 0;
+    private final Queue<COMMAND_TYPES> keyInputQueue = new LinkedList<>();
+    private final Queue<COMMAND_TYPES> specialInputQueue = new LinkedList<>();
+    private final Queue<String> literalTextQueue = new LinkedList<>();
 
     private final Map<String, COMMAND_TYPES> commandToCommandType = new HashMap<>();
     private final Map<String, COMMAND_TYPES> specialToCommandType = new HashMap<>();
@@ -85,6 +82,26 @@ public class ScriptManager {
         commandToCommandType.put("-leftshift", COMMAND_TYPES.LEFT_SHIFT_RELEASE);
         commandToCommandType.put("+leftcontrol", COMMAND_TYPES.LEFT_CONTROL_PRESS);
         commandToCommandType.put("-leftcontrol", COMMAND_TYPES.LEFT_CONTROL_RELEASE);
+        commandToCommandType.put("+hotbar1", COMMAND_TYPES.HOTBAR_1_PRESS);
+        commandToCommandType.put("+hotbar2", COMMAND_TYPES.HOTBAR_2_PRESS);
+        commandToCommandType.put("+hotbar3", COMMAND_TYPES.HOTBAR_3_PRESS);
+        commandToCommandType.put("+hotbar4", COMMAND_TYPES.HOTBAR_4_PRESS);
+        commandToCommandType.put("+hotbar5", COMMAND_TYPES.HOTBAR_5_PRESS);
+        commandToCommandType.put("+hotbar6", COMMAND_TYPES.HOTBAR_6_PRESS);
+        commandToCommandType.put("+hotbar7", COMMAND_TYPES.HOTBAR_7_PRESS);
+        commandToCommandType.put("+hotbar8", COMMAND_TYPES.HOTBAR_8_PRESS);
+        commandToCommandType.put("+hotbar9", COMMAND_TYPES.HOTBAR_9_PRESS);
+        commandToCommandType.put("-hotbar1", COMMAND_TYPES.HOTBAR_1_RELEASE);
+        commandToCommandType.put("-hotbar2", COMMAND_TYPES.HOTBAR_2_RELEASE);
+        commandToCommandType.put("-hotbar3", COMMAND_TYPES.HOTBAR_3_RELEASE);
+        commandToCommandType.put("-hotbar4", COMMAND_TYPES.HOTBAR_4_RELEASE);
+        commandToCommandType.put("-hotbar5", COMMAND_TYPES.HOTBAR_5_RELEASE);
+        commandToCommandType.put("-hotbar6", COMMAND_TYPES.HOTBAR_6_RELEASE);
+        commandToCommandType.put("-hotbar7", COMMAND_TYPES.HOTBAR_7_RELEASE);
+        commandToCommandType.put("-hotbar8", COMMAND_TYPES.HOTBAR_8_RELEASE);
+        commandToCommandType.put("-hotbar9", COMMAND_TYPES.HOTBAR_9_RELEASE);
+        commandToCommandType.put("+enter", COMMAND_TYPES.ENTER_PRESS);
+        commandToCommandType.put("-enter", COMMAND_TYPES.ENTER_RELEASE);
         //special
         specialToCommandType.put("+autojump", COMMAND_TYPES.AUTO_JUMP_ENABLE);
         specialToCommandType.put("-autojump", COMMAND_TYPES.AUTO_JUMP_DISABLE);
@@ -94,12 +111,13 @@ public class ScriptManager {
         return this.script != null && this.script.length > 0;
     }
 
-    // passing ServerCommandSource feels hacky, might refactor at some point
+    // passing ServerCommandSource feels hacky, will refactor at some point
     public int setScript(String scriptName, ServerCommandSource source) {
         try {
             BufferedReader reader = new BufferedReader(new FileReader(scriptDirectory + System.getProperty("file.separator") + scriptName + ".script"));
             script = reader.lines()
                     .toArray(String[]::new);
+            length += script.length;
             for (int i = 0; i < script.length; i++) {
                 String[] commands = Arrays.stream(script[i].split(";"))
                         .map(String::trim)
@@ -109,29 +127,36 @@ public class ScriptManager {
                     for (String command : commands) {
 //                        String command = script[j].trim();
                         command = command.trim();
-                        if (!(Pattern.matches("wait \\d+", command) ||
+                        if (Pattern.matches("wait \\d+", command)) {
+                            length += Integer.parseInt(command.split(" ")[1]);
+                        }
+                        if(!(Pattern.matches("wait \\d+", command) ||
                                 commandToCommandType.containsKey(command) ||
                                 specialToCommandType.containsKey(command) ||
                                 Pattern.matches("yaw -?\\d+\\.?\\d*", command) ||
                                 Pattern.matches("pitch -?\\d+\\.?\\d*", command) ||
                                 Pattern.matches("scrollup \\d+", command) ||
                                 Pattern.matches("scrolldown \\d+", command) ||
-                                Pattern.matches("\\+hotbar\\d", command) ||
-                                Pattern.matches("-hotbar\\d", command) ||
+//                                Pattern.matches("\\+hotbar\\d", command) ||
+//                                Pattern.matches("-hotbar\\d", command) ||
                                 Pattern.matches("slot \\d+", command) ||
-                                Pattern.matches("load", command)))
+                                Pattern.matches("load", command) ||
+                                Pattern.matches("text \".*\"", command)))
                         {
-                            source.sendFeedback(new TranslatableText("commands.script.load.invalid", scriptName, command, i), false);
+                            source.sendFeedback(new TranslatableText("commands.script.load.invalid", scriptName, command, i + 1), false);
                             script = null;
+                            length = 0;
                             return 3; // invalid command
                         }
                     }
                 }
             }
             if (script.length > 0) {
+
                 return 0; // success
             }
             script = null;
+            length = 0;
             return 1; // script is empty
         } catch (FileNotFoundException e) {
             return 2; // script does not exist
@@ -140,8 +165,11 @@ public class ScriptManager {
 
     public void start() {
         if (script != null) {
+//            prevTick = ((MinecraftServerAccessor)MinecraftClient.getInstance().getServer()).getTicks();
+
+//            ((RenderTickCounterAccessor)((MinecraftClientAccessor)MinecraftClient.getInstance()).getRenderTickCounter()).setTickTime(25);
             executing = true;
-            waitTimer = 1;
+            waitTimer = 0;
         }
     }
 
@@ -150,83 +178,118 @@ public class ScriptManager {
         commandIndex = 0;
         waitTimer = 0;
         modifiers = 0;
+        keyInputQueue.clear();
+        specialInputQueue.clear();
         InputUtil.getClientSidePlayerEntity().addChatMessage(new TranslatableText("script.execution.finish"), false);
     }
 
     public void setupTick() {
-        if (waitTimer == 0 && !((ServerPlayerEntityAccessor)InputUtil.getServerSidePlayerEntity()).isInTeleportationState()) {
-            String[] commands = Arrays.stream(script[commandIndex].split(";"))
-                    .map(String::trim)
-                    .toArray(String[]::new);
-            commandIndex++;
-            if (!commands[0].startsWith("//")) {
-                for (String command : commands) {
-                    parseCommand(command.trim());
+//        if (((MinecraftServerAccessor)MinecraftClient.getInstance().getServer()).getTicks() > prevTick) {
+//            prevTick = ((MinecraftServerAccessor) MinecraftClient.getInstance().getServer()).getTicks();
+            if (waitTimer == 0 /*&& !((ServerPlayerEntityAccessor)InputUtil.getServerSidePlayerEntity()).isInTeleportationState()*/) {
+                if (commandIndex == script.length) {
+                    stop();
+                    return;
                 }
+                String[] commands = Arrays.stream(script[commandIndex].split(";"))
+                        .map(String::trim)
+                        .toArray(String[]::new);
+                if (!commands[0].startsWith("//")) {
+                    for (String command : commands) {
+                        parseCommand(command.trim());
+                    }
+                }
+                commandIndex++;
+                System.out.println(Arrays.toString(commands));
+            } else {
+                waitTimer--;
+                System.out.println(waitTimer);
             }
-            if (commandIndex == script.length) {
-                stop();
-            }
-            System.out.println(Arrays.toString(commands));
-        } else {
-            waitTimer--;
-            System.out.println(waitTimer);
-        }
+//        }
     }
 
     public void executeTick() {
         while (specialInputQueue.size() > 0) {
             switch (specialInputQueue.remove()) {
-                case AUTO_JUMP_ENABLE: InputUtil.enableAutoJump(); break;
-                case AUTO_JUMP_DISABLE: InputUtil.disableAutoJump(); break;
+                case AUTO_JUMP_ENABLE :InputUtil.enableAutoJump();break;
+                case AUTO_JUMP_DISABLE :InputUtil.disableAutoJump();break;
             }
         }
         while (keyInputQueue.size() > 0) {
             switch (keyInputQueue.remove()) {
-                case ATTACK_PRESS: InputUtil.pressAttack(); break;
-                case ATTACK_RELEASE: InputUtil.releaseAttack(); break;
-                case USE_PRESS: InputUtil.pressUse(); break;
-                case USE_RELEASE: InputUtil.releaseUse(); break;
-                case PICK_ITEM_PRESS: InputUtil.pressPickItem(); break;
-                case PICK_ITEM_RELEASE: InputUtil.releasePickItem(); break;
-                case JUMP_PRESS: InputUtil.pressJump(); break;
-                case JUMP_RELEASE: InputUtil.releaseJump(); break;
-                case SNEAK_PRESS: InputUtil.pressSneak(); break;
-                case SNEAK_RELEASE: InputUtil.releaseSneak(); break;
-                case SPRINT_PRESS: InputUtil.pressSprint(); break;
-                case SPRINT_RELEASE: InputUtil.releaseSprint(); break;
-                case FORWARD_PRESS: InputUtil.pressForward(); break;
-                case FORWARD_RELEASE: InputUtil.releaseForward(); break;
-                case LEFT_PRESS: InputUtil.pressLeft(); break;
-                case LEFT_RELEASE: InputUtil.releaseLeft(); break;
-                case RIGHT_PRESS: InputUtil.pressRight(); break;
-                case RIGHT_RELEASE: InputUtil.releaseRight(); break;
-                case BACKWARD_PRESS: InputUtil.pressBack(); break;
-                case BACKWARD_RELEASE: InputUtil.releaseBack(); break;
-                case DROP_PRESS: InputUtil.pressDrop(); break;
-                case DROP_RELEASE: InputUtil.releaseDrop(); break;
-                case INVENTORY_PRESS: InputUtil.pressInventory(); break;
-                case INVENTORY_RELEASE: InputUtil.releaseInventory(); break;
-                case SWAP_HAND_PRESS: InputUtil.pressSwapHand(); break;
-                case SWAP_HAND_RELEASE: InputUtil.releaseSwapHand(); break;
-                case CHAT_PRESS: InputUtil.pressChat(); break;
-                case CHAT_RELEASE: InputUtil.releaseChat(); break;
-                case COMMAND_PRESS: InputUtil.pressCommand(); break;
-                case COMMAND_RELEASE: InputUtil.releaseCommand(); break;
-                case ESCAPE_PRESS: InputUtil.pressEscape(); break;
-                case ESCAPE_RELEASE: InputUtil.releaseEscape(); break;
-                case LEFT_MOUSE_PRESS: InputUtil.pressMouseButton(0); break;
-                case LEFT_MOUSE_RELEASE: InputUtil.releaseMouseButton(0); break;
-                case RIGHT_MOUSE_PRESS: InputUtil.pressMouseButton(1); break;
-                case RIGHT_MOUSE_RELEASE: InputUtil.releaseMouseButton(1); break;
-                case MIDDLE_MOUSE_PRESS: InputUtil.pressMouseButton(2); break;
-                case MIDDLE_MOUSE_RELEASE: InputUtil.releaseMouseButton(2); break;
-                case LEFT_SHIFT_PRESS: InputUtil.pressLeftShift(); break;
-                case LEFT_SHIFT_RELEASE: InputUtil.releaseLeftShift(); break;
-                case LEFT_CONTROL_PRESS: InputUtil.pressLeftControl(); break;
-                case LEFT_CONTROL_RELEASE: InputUtil.releaseLeftControl(); break;
-                default:
-                    throw new RuntimeException("Unknown input in input queue");
+                case ATTACK_PRESS :InputUtil.pressAttack();break;
+                case ATTACK_RELEASE :InputUtil.releaseAttack();break;
+                case USE_PRESS :InputUtil.pressUse();break;
+                case USE_RELEASE :InputUtil.releaseUse();break;
+                case PICK_ITEM_PRESS :InputUtil.pressPickItem();break;
+                case PICK_ITEM_RELEASE :InputUtil.releasePickItem();break;
+                case JUMP_PRESS :InputUtil.pressJump();break;
+                case JUMP_RELEASE :InputUtil.releaseJump();break;
+                case SNEAK_PRESS :InputUtil.pressSneak();break;
+                case SNEAK_RELEASE :InputUtil.releaseSneak();break;
+                case SPRINT_PRESS :InputUtil.pressSprint();break;
+                case SPRINT_RELEASE :InputUtil.releaseSprint();break;
+                case FORWARD_PRESS :InputUtil.pressForward();break;
+                case FORWARD_RELEASE :InputUtil.releaseForward();break;
+                case LEFT_PRESS :InputUtil.pressLeft();break;
+                case LEFT_RELEASE :InputUtil.releaseLeft();break;
+                case RIGHT_PRESS :InputUtil.pressRight();break;
+                case RIGHT_RELEASE :InputUtil.releaseRight();break;
+                case BACKWARD_PRESS :InputUtil.pressBack();break;
+                case BACKWARD_RELEASE :InputUtil.releaseBack();break;
+                case DROP_PRESS :InputUtil.pressDrop();break;
+                case DROP_RELEASE :InputUtil.releaseDrop();break;
+                case INVENTORY_PRESS :InputUtil.pressInventory();break;
+                case INVENTORY_RELEASE :InputUtil.releaseInventory();break;
+                case SWAP_HAND_PRESS :InputUtil.pressSwapHand();break;
+                case SWAP_HAND_RELEASE :InputUtil.releaseSwapHand();break;
+                case CHAT_PRESS :InputUtil.pressChat();break;
+                case CHAT_RELEASE :InputUtil.releaseChat();break;
+                case COMMAND_PRESS :InputUtil.pressCommand();break;
+                case COMMAND_RELEASE :InputUtil.releaseCommand();break;
+                case ESCAPE_PRESS :InputUtil.pressEscape();break;
+                case ESCAPE_RELEASE :InputUtil.releaseEscape();break;
+                case LEFT_MOUSE_PRESS :InputUtil.pressMouseButton(0);break;
+                case LEFT_MOUSE_RELEASE :InputUtil.releaseMouseButton(0);break;
+                case RIGHT_MOUSE_PRESS :InputUtil.pressMouseButton(1);break;
+                case RIGHT_MOUSE_RELEASE :InputUtil.releaseMouseButton(1);break;
+                case MIDDLE_MOUSE_PRESS :InputUtil.pressMouseButton(2);break;
+                case MIDDLE_MOUSE_RELEASE :InputUtil.releaseMouseButton(2);break;
+                case LEFT_SHIFT_PRESS :InputUtil.pressLeftShift();break;
+                case LEFT_SHIFT_RELEASE :InputUtil.releaseLeftShift();break;
+                case LEFT_CONTROL_PRESS :InputUtil.pressLeftControl();break;
+                case LEFT_CONTROL_RELEASE :InputUtil.releaseLeftControl();break;
+                case HOTBAR_1_PRESS :InputUtil.pressHotbar(1);break;
+                case HOTBAR_2_PRESS :InputUtil.pressHotbar(2);break;
+                case HOTBAR_3_PRESS :InputUtil.pressHotbar(3);break;
+                case HOTBAR_4_PRESS :InputUtil.pressHotbar(4);break;
+                case HOTBAR_5_PRESS :InputUtil.pressHotbar(5);break;
+                case HOTBAR_6_PRESS :InputUtil.pressHotbar(6);break;
+                case HOTBAR_7_PRESS :InputUtil.pressHotbar(7);break;
+                case HOTBAR_8_PRESS :InputUtil.pressHotbar(8);break;
+                case HOTBAR_9_PRESS :InputUtil.pressHotbar(9);break;
+                case HOTBAR_1_RELEASE :InputUtil.releaseHotbar(1);break;
+                case HOTBAR_2_RELEASE :InputUtil.releaseHotbar(2);break;
+                case HOTBAR_3_RELEASE :InputUtil.releaseHotbar(3);break;
+                case HOTBAR_4_RELEASE :InputUtil.releaseHotbar(4);break;
+                case HOTBAR_5_RELEASE :InputUtil.releaseHotbar(5);break;
+                case HOTBAR_6_RELEASE :InputUtil.releaseHotbar(6);break;
+                case HOTBAR_7_RELEASE :InputUtil.releaseHotbar(7);break;
+                case HOTBAR_8_RELEASE :InputUtil.releaseHotbar(8);break;
+                case HOTBAR_9_RELEASE :InputUtil.releaseHotbar(9);break;
+                case ENTER_PRESS :InputUtil.pressEnter();break;
+                case ENTER_RELEASE :InputUtil.releaseEnter();break;
+                case TEXT : {
+                    String text = literalTextQueue.remove();
+                    for (char c : text.toCharArray()) {
+                        InputUtil.typeLiteralChar(c);
+                    }
+                }
+                default : {
+                    InputUtil.getClientSidePlayerEntity().addChatMessage(
+                            new TranslatableText("script.execute.unknown", commandIndex), false);
+                    stop();
+                }
             }
         }
     }
@@ -259,23 +322,16 @@ public class ScriptManager {
                 FakeMouse.fakeMouseScroll(-1.0);
             }
         }
-        else if (Pattern.matches("\\+hotbar\\d", command)) {
-            int slot = Integer.parseInt(command.substring(7, 8));
-            if (slot != 0) {
-                InputUtil.pressHotbar(slot);
-            }
-        }
-        else if (Pattern.matches("-hotbar\\d", command)) {
-            int slot = Integer.parseInt(command.substring(7, 8));
-            if (slot != 0) {
-                InputUtil.releaseHotbar(slot);
-            }
-        }
         else if (Pattern.matches("slot \\d+", command)) {
               InputUtil.moveMouseToSlot(Integer.parseInt(command.split(" ")[1]));
         }
         else if (Pattern.matches("load", command)) {
             MinecraftTas.savestateManager.loadSoftSavestate();
+        }
+        else if (Pattern.matches("text \".*\"", command)) {
+            String text = command.substring(6, command.length() - 1);
+            literalTextQueue.add(text);
+            keyInputQueue.add(COMMAND_TYPES.TEXT);
         }
     }
 

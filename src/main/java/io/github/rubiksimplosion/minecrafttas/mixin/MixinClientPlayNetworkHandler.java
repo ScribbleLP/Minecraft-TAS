@@ -1,7 +1,14 @@
 package io.github.rubiksimplosion.minecrafttas.mixin;
 
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
+
 import io.github.rubiksimplosion.minecrafttas.MinecraftTas;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -10,15 +17,8 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.packet.s2c.play.CommandTreeS2CPacket;
-import net.minecraft.network.packet.s2c.play.CustomPayloadS2CPacket;
-import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
 import net.minecraft.server.command.CommandSource;
 import net.minecraft.server.command.ServerCommandSource;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Environment(EnvType.CLIENT)
 @Mixin(ClientPlayNetworkHandler.class)
@@ -32,7 +32,7 @@ public class MixinClientPlayNetworkHandler {
 
     @SuppressWarnings("unchecked")
     @Inject(method = "<init>", at = @At("RETURN"))
-    public void onInit(MinecraftClient mc, Screen screen, ClientConnection connection, GameProfile profile, CallbackInfo ci) {
+    public void onInit(MinecraftClient client, Screen screen, ClientConnection connection, GameProfile profile, CallbackInfo ci) {
         MinecraftTas.registerCommands((CommandDispatcher<ServerCommandSource>) (Object) commandDispatcher);
     }
 
